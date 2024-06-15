@@ -5,9 +5,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-project(atomic_operations)
+project(false_sharing)
 
 find_package(benchmark REQUIRED)
 
-add_executable(main main.cpp)
-target_link_libraries(main benchmark::benchmark)
+add_executable(false_sharing experiment.cpp)
+target_link_libraries(false_sharing benchmark::benchmark)
