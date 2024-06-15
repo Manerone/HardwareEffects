@@ -32,6 +32,66 @@ static void BM_FALSE_SHARING(benchmark::State& state) {
     }
 }
 
+static void BM_FALSE_SHARING_NO_ATOMIC(benchmark::State& state) {
+
+    auto f = [](int &a){
+        for(int i = 0; i < 100000; ++i) {
+            a++;
+        }
+    };
+
+    struct Foo {
+        int x1;
+        int x2;
+        int x3;
+        int x4;
+    };
+
+    while(state.KeepRunning()){
+        Foo x;
+
+        std::thread t0(f, std::ref(x.x1));
+        std::thread t1(f, std::ref(x.x2));
+        std::thread t2(f, std::ref(x.x3));
+        std::thread t3(f, std::ref(x.x4));
+        t0.join();
+        t1.join();
+        t2.join();
+        t3.join();
+    }
+}
+
+static void BM_FALSE_SHARING_NO_ATOMIC_LOCAL_VARS(benchmark::State& state) {
+
+    auto f = [](int &a){
+        int x = 0;
+        for(int i = 0; i < 100000; ++i) {
+            x++;
+        }
+        a = x;
+    };
+
+    struct Foo {
+        int x1;
+        int x2;
+        int x3;
+        int x4;
+    };
+
+    while(state.KeepRunning()){
+        Foo x;
+
+        std::thread t0(f, std::ref(x.x1));
+        std::thread t1(f, std::ref(x.x2));
+        std::thread t2(f, std::ref(x.x3));
+        std::thread t3(f, std::ref(x.x4));
+        t0.join();
+        t1.join();
+        t2.join();
+        t3.join();
+    }
+}
+
 static void BM_LOCAL_VARIABLES(benchmark::State& state) {
     auto f = [](){
         std::atomic<int> x{0};
@@ -74,5 +134,7 @@ static void BM_NO_SHARING(benchmark::State& state) {
 
 
 BENCHMARK(BM_FALSE_SHARING)->UseRealTime()->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_FALSE_SHARING_NO_ATOMIC)->UseRealTime()->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_FALSE_SHARING_NO_ATOMIC_LOCAL_VARS)->UseRealTime()->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_LOCAL_VARIABLES)->UseRealTime()->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_NO_SHARING)->UseRealTime()->Unit(benchmark::kMillisecond);
